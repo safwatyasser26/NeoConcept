@@ -70,7 +70,7 @@ export class UserController {
 
   static async quitTrack(req: Request, res: Response, next: NextFunction) {
     try {
-      const { trackId } = req.body;
+      const { trackId } = req.body as TrackIdBody;
 
       await UserService.quitTrack({ user: res.locals.user, trackId });
 

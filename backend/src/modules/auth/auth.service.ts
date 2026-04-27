@@ -142,7 +142,8 @@ export class AuthService {
 
     const message = rawMessage.replace("%%OTP%%", otp);
 
-    sendEmail(user.email, "NeoConcept - Password Reset", message, true);
+    // ! Remove while load testing
+    // sendEmail(user.email, "NeoConcept - Password Reset", message, true);
 
     return { message: SuccessMessages.PASSWORD_RESET_EMAIL_SENT };
   }

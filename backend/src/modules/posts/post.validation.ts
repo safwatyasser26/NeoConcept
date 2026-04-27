@@ -15,14 +15,23 @@ export class PostValidationSchemas {
   });
 
   static createBody = z.object({
-    title: z.string().min(1).max(255).trim(),
-    content: z.string().min(1).trim(),
+    title: z
+      .string()
+      .min(1, "Title must be at least 1 character long")
+      .max(255, "Title must be at most 255 characters long")
+      .trim(),
+    content: z.string().min(1, "Content must be at least 1 character long").trim(),
   });
 
   static updateBody = z
     .object({
-      title: z.string().min(1).max(255).trim().optional(),
-      content: z.string().min(1).trim().optional(),
+      title: z
+        .string()
+        .min(1, "Title must be at least 1 character long")
+        .max(255, "Title must be at most 255 characters long")
+        .trim()
+        .optional(),
+      content: z.string().min(1, "Content must be at least 1 character long").trim().optional(),
     })
     .refine((data) => data.title || data.content, {
       message: "Title or content is required",

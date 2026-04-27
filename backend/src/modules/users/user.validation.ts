@@ -4,8 +4,8 @@ import { Status } from "../../generated/prisma";
 export class UserValidationSchemas {
   static updateBody = z
     .object({
-      username: z.string().trim().min(1).optional(),
-      password: z.string().min(6).optional(),
+      username: z.string().trim().min(1, "Username must be at least 1 character long").optional(),
+      password: z.string().min(6, "Password must be at least 6 characters long").optional(),
     })
     .refine((data) => data.username || data.password, {
       message: "Username or password is required",
