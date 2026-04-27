@@ -5,25 +5,80 @@ import { check, sleep } from 'k6';
 export const API_BASE_URL_DEFAULT = 'http://127.0.0.1:9595/api/v1';
 // Configurable base URL and test user credentials via environment variables
 export const API_BASE_URL = __ENV.API_URL || API_BASE_URL_DEFAULT;
+
+// Admin Test User
 export const TEST_USER = {
   email: __ENV.TEST_EMAIL || 'loadtest@test.com',
   password: __ENV.TEST_PASSWORD || 'test123456',
   username: __ENV.TEST_USERNAME || 'loadtestuser',
 };
 
+// Student Test User
+export const STUDENT_TEST_USER = {
+  email: __ENV.TEST_STUDENT_EMAIL || `loadtest.student.${uniqueId()}@test.com`,
+  password: __ENV.TEST_STUDENT_PASSWORD || 'test123456',
+  username: __ENV.TEST_STUDENT_USERNAME || `lts${Math.random().toString(36).slice(2, 12)}`,
+};
+
+// Instructor Test User
+export const INSTRUCTOR_TEST_USER = {
+  email: __ENV.TEST_INSTRUCTOR_EMAIL || `loadtest.instructor.${uniqueId()}@test.com`,
+  password: __ENV.TEST_INSTRUCTOR_PASSWORD || 'test123456',
+  username: __ENV.TEST_INSTRUCTOR_USERNAME || `lti${Math.random().toString(36).slice(2, 12)}`,
+};
+
+// Assistant Test User
+export const ASSISTANT_TEST_USER = {
+  email: __ENV.TEST_ASSISTANT_EMAIL || `loadtest.assistant.${uniqueId()}@test.com`,
+  password: __ENV.TEST_ASSISTANT_PASSWORD || 'test123456',
+  username: __ENV.TEST_ASSISTANT_USERNAME || `lta${Math.random().toString(36).slice(2, 12)}`,
+};
+
 let authCookie = null;
-let testUserRegistered = false;
+const registeredByRole = {
+  ADMIN: false,
+  STUDENT: false,
+  INSTRUCTOR: false,
+  ASSISTANT: false,
+};
 
-function ensureTestUserRegistered() {
-  if (testUserRegistered) return;
+// Helper function to normalize role input and ensure it's one of the expected roles, defaulting to 'ADMIN' if an invalid role is provided. This helps maintain consistency in user management across the test suite.
+function normalizeRole(role = 'ADMIN') {
+  const normalizedRole = `${role}`.toUpperCase();
+  return ['ADMIN', 'STUDENT', 'INSTRUCTOR', 'ASSISTANT'].includes(normalizedRole) ? normalizedRole : 'ADMIN';
+}
 
+// Helper function to get the test user object based on the role. This allows us to easily retrieve the appropriate test user credentials for different roles when performing actions that require authentication.
+function getUserForRole(role) {
+  switch (normalizeRole(role)) {
+    case 'STUDENT':
+      return STUDENT_TEST_USER;
+    case 'INSTRUCTOR':
+      return INSTRUCTOR_TEST_USER;
+    case 'ASSISTANT':
+      return ASSISTANT_TEST_USER;
+    default:
+      return TEST_USER;
+  }
+}
+
+// Signup a test user for a given role (called once during setup)
+export function signupTestUser(role = 'ADMIN') {
+  const normalizedRole = normalizeRole(role);
+  if (registeredByRole[normalizedRole]) return;
+
+  // Gives us the correct user object based on the role, which includes email, password, and username for the signup request.
+  const user = getUserForRole(normalizedRole);
+
+  // Payload for signup request, including the role to ensure the user is created with the correct permissions.
   const signupPayload = JSON.stringify({
-    email: TEST_USER.email,
-    password: TEST_USER.password,
-    username: TEST_USER.username,
-    role: 'ADMIN', // Registering as admin to ensure we have permissions for all test scenarios
+    email: user.email,
+    password: user.password,
+    username: user.username,
+    role: normalizedRole,
   });
 
+  // Registering the test user by making a POST request to the signup endpoint with the appropriate payload and headers. The response is checked to ensure that the user was either created successfully (201) or already exists (409), which allows for idempotent setup across multiple test runs.
   const signupResponse = http.post(`${API_BASE_URL}/auth/signup`, signupPayload, {
     headers: {
       'Content-Type': 'application/json',
@@ -33,20 +88,30 @@ function ensureTestUserRegistered() {
 
   // 201: created, 409: already exists.
   check(signupResponse, {
-    'test user signup is 201 or 409': (r) => r.status === 201 || r.status === 409,
+    [`${normalizedRole.toLowerCase()} test user signup is 201 or 409`]: (r) => r.status === 201 || r.status === 409,
   });
 
-  testUserRegistered = true;
+  registeredByRole[normalizedRole] = true;
+}
+
+// Setup all test users at the beginning of the test (signup once per role)
+export function setupAllTestUsers() {
+  signupTestUser('ADMIN');
+  signupTestUser('STUDENT');
+  signupTestUser('INSTRUCTOR');
+  signupTestUser('ASSISTANT');
 }
 
 // The login function will be used across multiple test modules to authenticate and store the session cookie for subsequent requests.
-export function login() {
-  ensureTestUserRegistered();
+// Does not signup; assumes setupAllTestUsers() was called once at test start.
+export function login(role = 'ADMIN') {
+  const normalizedRole = normalizeRole(role);
+  const user = getUserForRole(normalizedRole);
 
   // Payload for login request
   const loginPayload = JSON.stringify({
-    email: TEST_USER.email,
-    password: TEST_USER.password,
+    email: user.email,
+    password: user.password,
   });
 
   // Parameters for the login request, including headers
@@ -60,7 +125,7 @@ export function login() {
   const response = http.post(`${API_BASE_URL}/auth/login`, loginPayload, params);
   // Checking the response status to ensure login was successful
   check(response, {
-    'login status is 200': (r) => r.status === 200,
+    [`login (${normalizedRole.toLowerCase()}) status is 200`]: (r) => r.status === 200,
   });
 
   // Extract cookie from Set-Cookie header
@@ -69,6 +134,42 @@ export function login() {
     authCookie = cookies[0];
   }
 
+  return response;
+}
+
+// The same as login just this time we want to make a student user
+export function loginStudent() {
+  return login('STUDENT');
+}
+
+function normalizeStaffRole(role = '') {
+  const normalized = `${role}`.toUpperCase();
+  if (normalized === 'INSTRUCTOR' || normalized === 'ASSISTANT') {
+    return normalized;
+  }
+
+  return Math.random() < 0.5 ? 'INSTRUCTOR' : 'ASSISTANT';
+}
+
+// Get or create one valid staff user for role-restricted staff requests routes.
+export function createInstructorOrAssistant() {
+  const staffRole = normalizeStaffRole(__ENV.TEST_STAFF_ROLE || '');
+
+  return {
+    role: staffRole,
+    user: getUserForRole(staffRole),
+  };
+}
+
+// The same as login just this time we want to make either an instructor or assistant user based on environment variable or random choice.
+export function loginInstructorOrAssistant() {
+  const { role } = createInstructorOrAssistant();
+  return login(role);
+}
+
+export function logout() {
+  const response = makeRequest('GET', '/auth/logout');
+  clearAuthCookie();
   return response;
 }
 
