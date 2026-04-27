@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export class ResourceValidationSchemas {
-  static getManyQuery = z.object({
+  static courseIdParams = z.object({
     courseId: z.string(),
   });
 
@@ -15,6 +15,6 @@ export class ResourceValidationSchemas {
   });
 }
 
-export type GetManyQuery = z.infer<typeof ResourceValidationSchemas.getManyQuery>;
+export type CourseIdParams = z.infer<typeof ResourceValidationSchemas.courseIdParams>;
 export type IdParams = z.infer<typeof ResourceValidationSchemas.idParams>;
 export type UploadBody = z.infer<typeof ResourceValidationSchemas.uploadBody>;

@@ -14,7 +14,7 @@ const router = express.Router({ mergeParams: true });
 router.get(
   "/",
   protect,
-  validate({ query: ResourceValidationSchemas.getManyQuery }),
+  validate({ params: ResourceValidationSchemas.courseIdParams }),
   checkCourseExists,
   verifyCourseMember,
   ResourceController.getMany,
@@ -33,12 +33,22 @@ router.post(
   "/upload",
   protect,
   restrict(Role.INSTRUCTOR),
-  validate({ body: ResourceValidationSchemas.uploadBody }),
+  validate({ params: ResourceValidationSchemas.courseIdParams }),
   checkCourseExists,
   verifyCourseMember,
   uploadToS3(),
   ResourceController.upload,
 );
+
+router.get(
+  "/:id/download",
+  protect,
+  validate({ params: ResourceValidationSchemas.idParams }),
+  checkCourseExists,
+  verifyCourseMember,
+  ResourceController.download,
+);
+
 
 router.delete(
   "/:id",

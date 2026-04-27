@@ -17,7 +17,7 @@ tags:
   - name: Student-Requests
   - name: Comments
   - name: Quizzes
-  # - name: Resources
+  - name: Resources
 
 paths:
   /auth:
@@ -2775,132 +2775,131 @@ paths:
         "500":
           description: Something went wrong
 
-  # /courses/{courseId}/resources:
-  #   get:
-  #     tags:
-  #       - Resources
-  #     summary: retrieve all the resources in a course
-  #     security:
-  #       - cookieAuth: []
-  #     parameters:
-  #       - name: courseId
-  #         in: path
-  #         required: true
-  #         schema:
-  #           type: integer
-  #           example: 1
-  #     responses:
-  #       "200":
-  #         description: success
-  #       "404":
-  #         description: Course not found
-  #       "500":
-  #         description: Something went wrong
-  # /courses/{courseId}/resources/{id}:
-  #   get:
-  #     tags:
-  #       - Resources
-  #     summary: retrieve a resource by id
-  #     security:
-  #       - cookieAuth: []
-  #     parameters:
-  #       - name: courseId
-  #         in: path
-  #         required: true
-  #         schema:
-  #           type: integer
-  #           example: 1
-  #       - name: id
-  #         in: path
-  #         required: true
-  #         schema:
-  #           type: string
-  #           example: 9c816942-585d-4d23-b44b-fcb0915558fc
-  #     responses:
-  #       "200":
-  #         description: success
-  #       "400":
-  #         description: Resource does not belong to this course
-  #       "404":
-  #         description: Course not found || Resource not found
-  #       "500":
-  #         description: Something went wrong
-  # /courses/{courseId}/resources/upload:
-  #   post:
-  #     tags:
-  #       - Resources
-  #     summary: upload a resource
-  #     security:
-  #       - cookieAuth: []
-  #     parameters:
-  #       - name: courseId
-  #         in: path
-  #         required: true
-  #         schema:
-  #           type: integer
-  #           example: 1
-  #     requestBody:
-  #       required: true
-  #       content:
-  #         multipart/form-data:
-  #           schema:
-  #             type: object
-  #             properties:
-  #               file:
-  #                 type: string
-  #                 format: binary
-  #     responses:
-  #       "201":
-  #         description: success
-  #       "500":
-  #         description: Something went wrong
-  # /courses/{courseId}/resources/{id}/download:
-  #   get:
-  #     tags:
-  #       - Resources
-  #     summary: download a resource
-  #     security:
-  #       - cookieAuth: []
-  #     parameters:
-  #       - name: courseId
-  #         in: path
-  #         required: true
-  #         schema:
-  #           type: integer
-  #           example: 1
-  #       - name: id
-  #         in: path
-  #         required: true
-  #         schema:
-  #           type: string
-  #           example: 9c816942-585d-4d23-b44b-fcb0915558fc
-  #     responses:
-  #       "200":
-  #         description: success
-  #       "500":
-  #         description: Unexpected response type from S3 || Something went wrong
-  # /courses/{courseId}/resources/{id}/delete:
-  #   delete:
-  #     tags:
-  #       - Resources
-  #     summary: delete a resource
-  #     security:
-  #       - cookieAuth: []
-  #     parameters:
-  #       - name: courseId
-  #         in: path
-  #         required: true
-  #         schema:
-  #           type: integer
-  #           example: 1
-  #       - name: id
-  #         in: path
-  #         required: true
-  #         schema:
-  #           type: string
-  #           example: 9c816942-585d-4d23-b44b-fcb0915558fc
-  #     responses:
-  #       "200":
-  #         description: Resource deleted successfully
-  #       "500":
-  #         description: Something went wrong
+  /courses/{courseId}/resources:
+    get:
+      tags:
+        - Resources
+      summary: retrieve all the resources in a course
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: f77d4965-f924-45f3-84c9-dd08dd2bd649
+      responses:
+        "200":
+          description: success
+        "404":
+          description: Course not found
+        "500":
+          description: Something went wrong
+  /courses/{courseId}/resources/{id}:
+    get:
+      tags:
+        - Resources
+      summary: retrieve a resource by id
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: f77d4965-f924-45f3-84c9-dd08dd2bd649
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: 9c816942-585d-4d23-b44b-fcb0915558fc
+      responses:
+        "200":
+          description: success
+        "400":
+          description: Resource does not belong to this course
+        "404":
+          description: Course not found || Resource not found
+        "500":
+          description: Something went wrong
+    delete:
+      tags:
+        - Resources
+      summary: delete a resource
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: f77d4965-f924-45f3-84c9-dd08dd2bd649
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: 9c816942-585d-4d23-b44b-fcb0915558fc
+      responses:
+        "200":
+          description: Resource deleted successfully
+        "500":
+          description: Something went wrong
+  /courses/{courseId}/resources/upload:
+    post:
+      tags:
+        - Resources
+      summary: upload a resource
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: f77d4965-f924-45f3-84c9-dd08dd2bd649
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: success
+        "500":
+          description: Something went wrong
+  /courses/{courseId}/resources/{id}/download:
+    get:
+      tags:
+        - Resources
+      summary: download a resource
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: f77d4965-f924-45f3-84c9-dd08dd2bd649
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: 9c816942-585d-4d23-b44b-fcb0915558fc
+      responses:
+        "200":
+          description: success
+        "500":
+          description: Unexpected response type from S3 || Something went wrong

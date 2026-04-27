@@ -97,6 +97,7 @@ export class TrackService {
       await tx.track.update({ where: { id }, data: { deletedAt: new Date(), creatorId: null } });
       await tx.course.updateMany({ where: { trackId: id }, data: { deletedAt: new Date() } });
       await tx.userTrack.updateMany({ where: { trackId: id }, data: { deletedAt: new Date() } });
+      await tx.userCourse.updateMany({ where: { trackId: id }, data: { deletedAt: new Date() } });
     });
   }
 }

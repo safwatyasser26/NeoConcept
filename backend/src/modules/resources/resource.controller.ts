@@ -2,12 +2,12 @@ import { Request, Response, NextFunction } from "express";
 import { ResourceService } from "./resource.service";
 import { HTTPStatusText } from "../../types/HTTPStatusText";
 import { SuccessMessages } from "../../types/successMessages";
-import { GetManyQuery, IdParams, UploadBody } from "./resource.validation";
+import { CourseIdParams, IdParams, UploadBody } from "./resource.validation";
 
 export class ResourceController {
   static async getMany(_req: Request, res: Response, next: NextFunction) {
     try {
-      const { courseId } = res.locals.query as GetManyQuery;
+      const { courseId } = res.locals.params as CourseIdParams;
       const data = await ResourceService.getResources(courseId);
 
       res.status(200).json({ status: HTTPStatusText.SUCCESS, data });
@@ -29,7 +29,7 @@ export class ResourceController {
 
   static async upload(req: Request, res: Response, next: NextFunction) {
     try {
-      const { courseId } = res.locals.body as UploadBody;
+      const { courseId } = res.locals.params as CourseIdParams;
       const file = req.file!;
       const userId = res.locals.user.id;
 
